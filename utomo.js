@@ -145,7 +145,7 @@ module.exports = utomo = async (client, m, chatUpdate, store) => {
     try {
       // Use OpenAI to generate response based on chat history and incoming message
       const response = await openai.createChatCompletion({
-        model: "gpt-4",
+        model: setting.model,
         messages: messages,
         temperature: 0.1,
         max_tokens: 1500,
@@ -214,7 +214,7 @@ Menampilkan pemilik bot`);
           try {
             // Gunakan OpenAI untuk menghasilkan respons berdasarkan riwayat obrolan dan pesan masuk
             const response = await openai.createChatCompletion({
-              model: "gpt-4",
+              model: setting.model,
               messages: messages,
               temperature: 0,
               max_tokens: 1500,
