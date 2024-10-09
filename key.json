@@ -1,7 +1,9 @@
 {
-  "autoAI": false,
-  "reply": false,
-  "keyopenai": "sk-...................",
+  "autoAI": true,
+  "reply": true,
+  "keyopenai": "sk-xxxxxxxxxxxxxxxxxxxxxx",
   "basePath": "https://api.openai.com/v1",
-  "donasi": "Bot aktif"
+  "model": "gpt-4o",
+  "ownerbot": "GOD",
+	"donasi": "Bot aktif"
 }
