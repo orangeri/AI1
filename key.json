@@ -2,12 +2,13 @@
   "autoAI": true,
   "reply": false,
   "keyopenai": "sk-xxxxxxxxxxxxxxxxxxxxxxx",
-  "basePath": "https://api.openai/v1",
+  "basePath": "https://api.openai.com/v1",
   "model": "gpt-4o-mini-2024-07-18",
   "modelimg": "gpt-4o-mini-2024-07-18",
   "autodelimg": true,
   "autodelmsg": true,
   "delhistory": true,
   "delimages": true,
+  "port": "3004",
   "donasi": "Bot aktif"
 }
