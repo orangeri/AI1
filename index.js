@@ -1,9 +1,11 @@
-require("http").createServer((_, res) => res.end("Berjalan coy")).listen(3000)
-
-const keepAlive = require("./server");
-const sessionName = "session";
-const donet = "https://saweria.co";
-const owner = ["6289xxxxxx"]; // Put your number here ex: ["62xxxxxxxxx"]
+const fs = require("fs");
+const http = require("http");
+const axios = require("axios");
+const chalk = require("chalk");
+const figlet = require("figlet");
+const pino = require("pino");
+const { Boom } = require("@hapi/boom");
+const PhoneNumber = require("awesome-phonenumber");
 const {
   default: utomoConnect,
   useMultiFileAuthState,
@@ -13,17 +15,28 @@ const {
   jidDecode,
   proto,
   getContentType,
-  Browsers, 
+  Browsers,
   fetchLatestWaWebVersion
 } = require("@adiwajshing/baileys");
-const pino = require("pino");
-const { Boom } = require("@hapi/boom");
-const fs = require("fs");
-const axios = require("axios");
-const chalk = require("chalk");
-const figlet = require("figlet");
-const _ = require("lodash");
-const PhoneNumber = require("awesome-phonenumber");
+
+// Load configuration from key.json
+let config;
+try {
+  config = JSON.parse(fs.readFileSync("key.json"));
+} catch (error) {
+  console.error("Error reading key.json:", error);
+  process.exit(1);
+}
+
+const port = config.port || 3000; // Default to 3000 if not specified
+http.createServer((_, res) => res.end("Berjalan coy")).listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+const keepAlive = require("./server");
+const sessionName = "session";
+const donet = "https://saweria.co";
+const owner = ["6289xxxxxx"]; // Put your number here ex: ["62xxxxxxxxx"]
 
 const store = makeInMemoryStore({ logger: pino().child({ level: "silent", stream: "store" }) });
 
@@ -90,49 +103,18 @@ function smsg(conn, m, store) {
         ...(m.isGroup ? { participant: m.quoted.sender } : {}),
       }));
 
-      /**
-       *
-       * @returns
-       */
       m.quoted.delete = () => conn.sendMessage(m.quoted.chat, { delete: vM.key });
 
-      /**
-       *
-       * @param {*} jid
-       * @param {*} forceForward
-       * @param {*} options
-       * @returns
-       */
       m.quoted.copyNForward = (jid, forceForward = false, options = {}) => conn.copyNForward(jid, vM, forceForward, options);
 
-      /**
-       *
-       * @returns
-       */
       m.quoted.download = () => conn.downloadMediaMessage(m.quoted);
     }
   }
   if (m.msg.url) m.download = () => conn.downloadMediaMessage(m.msg);
   m.text = m.msg.text || m.msg.caption || m.message.conversation || m.msg.contentText || m.msg.selectedDisplayText || m.msg.title || "";
-  /**
-   * Reply to this message
-   * @param {String|Object} text
-   * @param {String|false} chatId
-   * @param {Object} options
-   */
   m.reply = (text, chatId = m.chat, options = {}) => (Buffer.isBuffer(text) ? conn.sendMedia(chatId, text, "file", "", m, { ...options }) : conn.sendText(chatId, text, m, { ...options }));
-  /**
-   * Copy this message
-   */
   m.copy = () => exports.smsg(conn, M.fromObject(M.toObject(m)));
 
-  /**
-   *
-   * @param {*} jid
-   * @param {*} forceForward
-   * @param {*} options
-   * @returns
-   */
   m.copyNForward = (jid = m.chat, forceForward = false, options = {}) => conn.copyNForward(jid, m, forceForward, options);
 
   return m;
@@ -164,7 +146,6 @@ async function startHisoka() {
   store.bind(client.ev);
 
   client.ev.on("messages.upsert", async (chatUpdate) => {
-    //console.log(JSON.stringify(chatUpdate, undefined, 2))
     try {
       mek = chatUpdate.messages[0];
       if (!mek.message) return;
@@ -179,7 +160,6 @@ async function startHisoka() {
     }
   });
 
-  // Handle error
   const unhandledRejections = new Map();
   process.on("unhandledRejection", (reason, promise) => {
     unhandledRejections.set(promise, reason);
@@ -192,7 +172,6 @@ async function startHisoka() {
     console.log("Caught exception: ", err);
   });
 
-  // Setting
   client.decodeJid = (jid) => {
     if (!jid) return jid;
     if (/:\d+@/gi.test(jid)) {
@@ -283,11 +262,10 @@ async function startHisoka() {
         startHisoka();
       }
     } else if (connection === "open") {
-      console.log(color("Bot success conneted to server", "green"));
+      console.log(color("Bot success connected to server", "green"));
       console.log(color("Donate for creator https://saweria.co", "yellow"));
       console.log(color("Type /menu to see menu"));
     }
-    // console.log('Connected...', update)
   });
 
   client.ev.on("creds.update", saveCreds);
@@ -317,7 +295,7 @@ async function startHisoka() {
       : /^data:.*?\/.*?;base64,/i.test(path)
       ? Buffer.from(path.split`,`[1], "base64")
       : /^https?:\/\//.test(path)
-      ? await await getBuffer(path)
+      ? await getBuffer(path)
       : fs.existsSync(path)
       ? fs.readFileSync(path)
       : Buffer.alloc(0);
@@ -327,7 +305,6 @@ async function startHisoka() {
   client.sendText = (jid, text, quoted = "", options) => client.sendMessage(jid, { text: text, ...options }, { quoted });
 
   client.cMod = (jid, copy, text = "", sender = client.user.id, options = {}) => {
-    //let copy = message.toJSON()
     let mtype = Object.keys(copy.message)[0];
     let isEphemeral = mtype === "ephemeralMessage";
     if (isEphemeral) {
@@ -364,6 +341,6 @@ fs.watchFile(file, () => {
   console.log(chalk.redBright(`Update ${__filename}`));
   delete require.cache[file];
   require(file);
-
-keepAlive();  
 });
+
+keepAlive();
